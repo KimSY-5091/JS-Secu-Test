@@ -1,5 +1,4 @@
 
-
     if(!contextMenu) {
         document.oncontextmenu = function () {
             return false;
@@ -20,7 +19,7 @@
         }
     }
 
-    //전자서명 관련
+	//전자서명 관련
     function showSignPanel() {
       var spanel = document.getElementById("signaturePanel");
       spanel.style.display = "block";
@@ -31,27 +30,12 @@
       spanel.style.display = "none";  
     }
     //전자서명 관련
-    
-    
-    // (사용자입력)값이 HTML Attr.으로 사용되기에 적합하도록 필터링하여 return (vs XSS)
-    function escapeInput(val) { // 2025.10.21
-        if (typeof val !== "string") {
-            return val; // empty return도 검토
-        }
-    
-        return (val.replace(/&/g, '&amp;')
-                   .replace(/</g, '&lt;')
-                   .replace(/>/g, '&gt;')
-                   .replace(/"/g, '&quot;')
-                   .replace(/'/g, '&#39;')
-        );
-    }
-    
 		 
 	//var startPage 		= 1;
 	//var endPage 		= 4;
     //var currentPage 	= 1;
-	//zoomRate        = 1.2;
+	//var zoomRate        = 1.0;
+	var zoomIndex = 5;
     var zoomArray       = new Array(0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5);
     var ieFlag = true;
     var swfReady = false;
@@ -60,9 +44,7 @@
     var reportUrl = document.URL;
     var scrollFlag = true;
     var pdffilename="";
-    var menuHeight=57;                  //px단위
     var reportTopMargin=26;
-
 
     var browserSearchString = new Array(
         "Edge",
@@ -90,7 +72,7 @@
     }
 
     var browser = getBrowser();
-
+    
     function getBrowser(){
 		
 		var browser = navigator.userAgent;
@@ -119,6 +101,7 @@
             return false;
     }
     
+    
     if(reportUrl.indexOf("?") == -1){
     	reportUrl += "?reportMode=HTML";
     }else if(reportUrl.indexOf("reportMode") == -1){
@@ -127,12 +110,11 @@
     
     if(window.console == undefined) 
 		console = window.console || { log: function() {} };
-		
 	
 	$(document).ready(function(){
 
 		jsReady = true;
-			
+		
 		$(document).ajaxStart(function() {
 			   $( "#loading" ).show();
 			 });
@@ -141,12 +123,10 @@
 			   $( "#loading" ).hide();
 			 });
 
-
         $('#root').show();
 		$('#root').css({
 			//'width': function(){return '800px';}
 			'width': function(){return '100%';}
-
 		});
 		
 		//화면이 보고서 폭보다 넓을 경우 와
@@ -155,7 +135,8 @@
 	    if( parseInt(($(window).width() - pageWidth)/2) > 0 && report_widthUnit != '%'){
 	    	report_leftMargin = parseInt(($(window).width() - pageWidth)/2 - 10);
 	    }
-		
+		if(simpleMode)
+            report_leftMargin
 		$('#report').css({
 			//'text-align': 'center',
 			
@@ -163,10 +144,8 @@
 			
 			'width': function(){return report_width + report_widthUnit;},
 			//'height': function(){return '1100px';}
-			//'height': function(){return ($(window).height()-bottomMargine) + 'px';}
-            'height': function(){return ($(window).height()-bottomMargine-2) + 'px';}
+			'height': function(){return ($(window).height()-bottomMargine) + 'px';}
 		});
-		
 		
 		if (navigator.userAgent.indexOf("Opera") == -1){
 			
@@ -205,9 +184,7 @@
                 'margin-left' : function() {
                     //report_width가 %로 동적으로 변할 경우
                     if(report_widthUnit =='%'){
-                        //var leftMargin = ($(window).width() - tempPage)/2 - 10 + 'px';
-                        //var leftMargin = ($(window).width() - tempPage)/2 - 3 + 'px';
-                        var leftMargin = ($(window).width() - tempPage)/2 - 1 + 'px';
+                        var leftMargin = ($(window).width() - tempPage)/2 - 10 + 'px';
                         if(parseInt(leftMargin) < 0){
                             return 0;
                         }else{
@@ -220,8 +197,8 @@
 
         if(!lemonade) {
             if (browser.indexOf("MSIE") != -1) {
-                //$('#report td').css({'letter-spacing': '-1px' });
-                $('#report td').css({'letter-spacing': '-0.05mm' });
+                $('#report td').css({'letter-spacing': '-1px' });
+                //$('#report td').css({'letter-spacing': '-0.05mm' });
             }
             else if (browser.indexOf("Chrome") != -1) {
                 $('#report td').css({'letter-spacing': '-1px' });
@@ -238,7 +215,7 @@
         }
         else{
             if (browser.indexOf("Chrome") != -1) {
-                $('#report td').css({'-webkit-text-size-adjust': 'none' });
+                //$('#report td').css({'letter-spacing': '-1px' });
             }
             else if (browser.indexOf("Firefox") != -1) {
                 //$('#report td').css({'letter-spacing': '-0.1mm' });
@@ -246,40 +223,21 @@
             else if (browser.indexOf("Opera") != -1) {
                 //$('#report td').css({'letter-spacing': '-1px' });
                 //$('#report td').css({'letter-spacing': '-0.2mm' });
-                $('#report td').css({'-webkit-text-size-adjust': 'none' });
             }
-            else if (browser.indexOf("Safari5") != -1) {
-                //$('#report td').css({'letter-spacing': '-0.1pt' });
+            else if (browser.indexOf("Safari") != -1) {
+                $('#report td').css({'letter-spacing': '-0.1pt' });
             }
             else {
                 //$('#report td').css({'letter-spacing': 'normal' });
             }
 
         }
-
-		/*
-		$('#signaturePanel').css({
-			'text-align': 'left',
-			'margin-left' : function() {
-				//report_width가 %로 동적으로 변할 경우
-				if(report_widthUnit =='%'){
-					var leftMargin = ($(window).width() - pageWidth)/2 - 230 + 'px';
-					if(parseInt(leftMargin) < 0){
-						return 0;
-					}else{
-						return leftMargin;
-					}
-				}
-			},
-			'height': function(){return (10) + 'px';}
-		});
-		*/
-
+		
 		pageTop = new Array();
 		oldPageTop = new Array();
 		for(var i=startPage;i < endPage+1;i++){
-
-            pageTop[i] = parseInt($('#p' + i).offset().top) - menuHeight - reportTopMargin;
+			
+			pageTop[i] = parseInt($('#p' + i).offset().top) - reportTopMargin ;
 			//console.log(i + " " + pageTop[i]);
 			
 			/*
@@ -302,6 +260,7 @@
 		    
 			$('#report').css({
 				//'text-align': 'center',
+				
 				'margin-left' : function() {return report_leftMargin;},
 				
 				'width': function(){return report_width + report_widthUnit;},
@@ -335,8 +294,7 @@
                     'margin-left' : function() {
                         //report_width가 %로 동적으로 변할 경우
                         if(report_widthUnit =='%'){
-                            //var leftMargin = ($(window).width() - tempPage)/2 - 10 + 'px';
-                            var leftMargin = ($(window).width() - tempPage)/2 - 1 + 'px';
+                            var leftMargin = ($(window).width() - tempPage)/2 - 10 + 'px';
                             if(parseInt(leftMargin) < 0){
                                 return 0;
                             }else{
@@ -347,34 +305,18 @@
                 });
             }
 			
-			/*
-			$('#signaturePanel').css({
-				'text-align': 'left',
-				'margin-left' : function() {
-					//report_width가 %로 동적으로 변할 경우
-					if(report_widthUnit =='%'){
-						var leftMargin = ($(window).width() - pageWidth)/2 - 230 + 'px';
-						if(parseInt(leftMargin) < 0){
-							return 0;
-						}else{
-							return leftMargin;
-						}
-					}
-				},
-				'height': function(){return (250) + 'px';}
-			});
-			*/
 		});
 		
 		
-		$('#page *').remove();
+		$('#page *',parent.document).remove();
 		for(var i=1;i<=endPage;i++){
 			var optionStr = "<option>" + i + "/" + endPage + "page</option>";
 
-			$('#page').append(filterXssString(optionStr));
+			$('#page',parent.document).append(filterXssString(optionStr));
 		}
 		
 		$("#size option").eq(5).prop("selected", "selected");
+		
 		
 		/*
 		if (browser.indexOf("MSIE9") != -1) {
@@ -392,21 +334,14 @@
 		*/
 		
 		zoom(zoomRate);
-
-		/*		
+		
+		/*
 		$('#report').mousewheel(function(Event, delta){
-			
-			if(wheelEventCount < 10){
-				wheelEventCount++;
-				return false;
-			}
-			wheelEventCount = 0;
-			//console.log(delta);
-			//console.log(Event);
 			
         	if (delta > 0) {
         		if(currentPage != startPage)
         			goScroll(currentPage-1);
+            	
         	} else {
         		if(currentPage != endPage)
         			goScroll(currentPage+1);
@@ -414,7 +349,7 @@
 			
         	return false;
      	});
-     	*/
+		*/
 		
 		$("#report").scroll(function(){
 			
@@ -441,7 +376,7 @@
 			
 			
 			if(position < 10 ){
-				$("#page option").eq(startPage-1).prop("selected", "selected");
+				$("#page option",parent.document).eq(startPage-1).prop("selected", "selected");
 				currentPage = startPage;
 				return true;
 			}
@@ -449,7 +384,7 @@
 			
 			if(position >= pageTop[endPage]){
 				
-				$("#page option").eq(endPage-1).prop("selected", "selected");
+				$("#page option",parent.document).eq(endPage-1).prop("selected", "selected");
 				currentPage = endPage;
 				return true;
 			}
@@ -459,7 +394,7 @@
 			for(var i=startPage;i < endPage+1;i++){
 				
 				if(position >= pageTop[i] && position < pageTop[i+1]){
-					$("#page option").eq(i-1).prop("selected", "selected");
+					$("#page option",parent.document).eq(i-1).prop("selected", "selected");
 					currentPage=i;;
 					//console.log("pageTop=" + pageTop[i] + " " + "position=" + position + " " + "pageBottom=" + pageTop[i+1] + " " + "currentpage=" + currentPage);
 					break;
@@ -471,10 +406,10 @@
 		});
 			
 	});
-	
+
 	
 	function goScroll(id){
-	
+		
 		scrollFlag = false;
 		
 		if(id < startPage){
@@ -511,122 +446,109 @@
 			$('#report').animate({	scrollTop: pageTop[id] }, 0);	
 		}
 			  
-		$("#page option").eq(id-1).prop("selected", "selected");
+		$("#page option",parent.document).eq(id-1).prop("selected", "selected");
 					
-	}
+	}		
 
-    function goPrev(){
-		
-		goScroll(currentPage - 1);
-		
-	}
-	
-	function goNext(){
-		goScroll(currentPage + 1);
-	}
-
-	
 	function zoom(size){
-			//console.log("-1size=" + size);
 
-            //안드로이드 킷켓(4.4.2)이면 확대축소 무시
-            if(navigator.userAgent.indexOf("Android 4.4.2") != -1)
-                return;
+        if(simpleMode){
+            if (browser.indexOf("MSIE9") != -1) {
+                $('#subreport').css('-ms-transform-origin', '0 0');
+                $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
 
-            if(simpleMode){
-                if (browser.indexOf("MSIE9") != -1) {
-                    $('#subreport').css('-ms-transform-origin', '0 0');
-                    $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
-
-                }
-                else if (browser.indexOf("MSIE10") != -1) {
-                    $('#subreport').css('-ms-transform-origin', '0 0');
-                    $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
-                }
-                else if (browser.indexOf("MSIE11") != -1) {
-                    $('#subreport').css('-ms-transform-origin', '0 0');
-                    $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
-                }
-                else if (browser.indexOf("MSIE7") != -1) {
-                    $('#subreport').css('-ms-transform-origin', '0 0');
-                    $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
-                }
-                else if (browser.indexOf("MSIE6") != -1) {
-                    $('#subreport').css('-ms-transform-origin', '0 0');
-                    $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
-                }
-                else {
-
-                    $('#subreport').css('-webkit-transform', 'scale(' + (size) + ')');
-                    $('#subreport').css('-webkit-transform-origin', '0 0');
-                    $('#subreport').css('-moz-transform', 'scale(' + (size) + ')');
-                    $('#subreport').css('-moz-transform-origin', '0 0');
-                    $('#subreport').css('-o-transform', 'scale(' + (size) + ')');
-                    $('#subreport').css('-o-transform-origin', '0 0');
-                }
-
+            }
+            else if (browser.indexOf("MSIE10") != -1) {
+                $('#subreport').css('-ms-transform-origin', '0 0');
+                $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
+            }
+            else if (browser.indexOf("MSIE11") != -1) {
+                $('#subreport').css('-ms-transform-origin', '0 0');
+                $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
+            }
+            else if (browser.indexOf("MSIE7") != -1) {
+                $('#subreport').css('-ms-transform-origin', '0 0');
+                $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
+            }
+            else if (browser.indexOf("MSIE6") != -1) {
+                $('#subreport').css('-ms-transform-origin', '0 0');
+                $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
             }
             else {
-                if (browser.indexOf("MSIE9") != -1) {
-                    $('#subreport').css('-ms-transform-origin', '50% 0');
-                    $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
 
-                }
-                else if (browser.indexOf("MSIE10") != -1) {
-                    $('#subreport').css('-ms-transform-origin', '50% 0');
-                    $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
-                }
-                else if (browser.indexOf("MSIE11") != -1) {
-                    $('#subreport').css('-ms-transform-origin', '50% 0');
-                    $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
-                }
-                else if (browser.indexOf("MSIE7") != -1) {
-                    $('#subreport').css('-ms-transform-origin', '50% 0');
-                    $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
-                }
-                else if (browser.indexOf("MSIE6") != -1) {
-                    $('#subreport').css('-ms-transform-origin', '50% 0');
-                    $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
-                }
-                else {
-
-                    $('#subreport').css('-webkit-transform', 'scale(' + (size) + ')');
-                    $('#subreport').css('-webkit-transform-origin', '50% 0');
-                    $('#subreport').css('-moz-transform', 'scale(' + (size) + ')');
-                    $('#subreport').css('-moz-transform-origin', '50% 0');
-                    $('#subreport').css('-o-transform', 'scale(' + (size) + ')');
-                    $('#subreport').css('-o-transform-origin', '50% 0');
-                }
+                $('#subreport').css('-webkit-transform', 'scale(' + (size) + ')');
+                $('#subreport').css('-webkit-transform-origin', '0 0');
+                $('#subreport').css('-moz-transform', 'scale(' + (size) + ')');
+                $('#subreport').css('-moz-transform-origin', '0 0');
+                $('#subreport').css('-o-transform', 'scale(' + (size) + ')');
+                $('#subreport').css('-o-transform-origin', '0 0');
             }
 
-			for(var i=0;i<11;i++){
-				if (size == zoomArray[i]) {
-					$("#size option").eq(i).prop("selected", "selected");
-				}
-					
-			}
+        }
+        else {
+            if (browser.indexOf("MSIE9") != -1) {
+                $('#subreport').css('-ms-transform-origin', '50% 0');
+                $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
 
-			for(var i=startPage;i < endPage+1;i++){
+            }
+            else if (browser.indexOf("MSIE10") != -1) {
+                $('#subreport').css('-ms-transform-origin', '50% 0');
+                $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
+            }
+            else if (browser.indexOf("MSIE11") != -1) {
+                $('#subreport').css('-ms-transform-origin', '50% 0');
+                $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
+            }
+            else if (browser.indexOf("MSIE7") != -1) {
+                $('#subreport').css('-ms-transform-origin', '50% 0');
+                $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
+            }
+            else if (browser.indexOf("MSIE6") != -1) {
+                $('#subreport').css('-ms-transform-origin', '50% 0');
+                $('#subreport').css('-ms-transform', 'scale(' + (size) + ')');
+            }
+            else {
 
-				if(size < 1.0 ){
-                    pageTop[i] = parseInt($('#p' + i).offset().top  + $('#report').scrollTop()) - menuHeight - parseInt((reportTopMargin * size));
-				}
-				else{
-                    pageTop[i] = parseInt($('#p' + i).offset().top + $('#report').scrollTop()) - menuHeight - reportTopMargin;
-				}
-				//console.log(i + " " + pageTop[i]);
+                $('#subreport').css('-webkit-transform', 'scale(' + (size) + ')');
+                $('#subreport').css('-webkit-transform-origin', '50% 0');
+                $('#subreport').css('-moz-transform', 'scale(' + (size) + ')');
+                $('#subreport').css('-moz-transform-origin', '50% 0');
+                $('#subreport').css('-o-transform', 'scale(' + (size) + ')');
+                $('#subreport').css('-o-transform-origin', '50% 0');
+            }
+        }
+		
+		for(var i=0;i<11;i++){
+			if (size == zoomArray[i]) {
+				$("#size option",parent.document).eq(i).prop("selected", "selected");
+				zoomIndex=i;
 			}
-			
+				
+		}
+		
+		for(var i=startPage;i < endPage+1;i++){
+
+			if(size < 1.0 ){
+				pageTop[i] = parseInt($('#p' + i).offset().top  + $('#report').scrollTop()) - parseInt((reportTopMargin * size)) ;
+			}
+			else{
+				pageTop[i] = parseInt($('#p' + i).offset().top + $('#report').scrollTop()) - reportTopMargin;
+			}
+			//console.log(i + " " + pageTop[i]);
+		}
+		
 	}
+	
 
 	function ZoomIn(){
-		var index = $("#size option").index($("#size option:selected"));
+		var index = $("#size option",parent.document).index($("#size option:selected"));
 		zoom(zoomArray[index+1]);
 		zoomRate = zoomArray[index+1];
+
 	}
 			
 	function ZoomOut(){
-		var index = $("#size option").index($("#size option:selected"));
+		var index = $("#size option",parent.document).index($("#size option:selected"));
 		if(index == 0)
 			index = 1;
 		zoom(zoomArray[index-1]);
@@ -635,21 +557,20 @@
 	}		
 	
 	function ZoomInOut(){
-		var index = $("#size option").index($("#size option:selected"));
+		var index = $("#size option",parent.document).index($("#size option:selected"));
 		zoom(zoomArray[index]);
 		zoomRate = zoomArray[index];
 	}
 
 	function goToMove(){
-		var index = $("#page option").index($("#page option:selected"))+ 1;
+		var index = parent.getPage();
 		goScroll(index);
 	}
 	
 	function divPrint() {
 		beforePrint();
-		window.print();		
-		afterPrint();
-		
+		window.print();
+		afterPrint();	
 	}
 	
 	function beforePrint(){
@@ -657,7 +578,75 @@
 	}
 	
 	function afterPrint(){
-			
+		
+	}
+	
+	function getMaxPage(){
+		return endPage;
+	}
+	
+	function goScrollTop(){
+		goScroll(startPage);
+		return startPage;
+	}
+	
+	function goScrollBottom(){
+		goScroll(endPage);
+		return endPage;
+	}
+	
+	function goScrollNext(){
+		goScroll(currentPage+1);
+		return currentPage;
+	}
+	
+	function goScrollPrev(){
+		goScroll(currentPage-1);
+		return currentPage;
+	}
+
+	function goScrollPage(index){
+		goScroll(index);
+	}
+	
+	function goZoomOut(){
+		if(zoomIndex < 0)
+			return 0;
+		zoomIndex--;
+		zoom(zoomArray[zoomIndex]);
+		zoomRate = zoomArray[zoomIndex];
+		return zoomIndex;
+	}
+	
+	function goZoomIn(){
+		if(zoomIndex > 9)
+			return 10;
+		
+		zoomIndex++;
+		zoom(zoomArray[zoomIndex]);
+		zoomRate = zoomArray[zoomIndex];
+		return zoomIndex;
+	}
+	
+	function goZoomPers(index){
+		zoomIndex=index;
+		zoom(zoomArray[zoomIndex]);
+		zoomRate = zoomArray[zoomIndex];
+	}
+	
+	function borderSetColor(color){
+		$('#report').css({ 'border-color': 'red' });  
+	}
+	
+	function scrollSet(scroll){
+		if(scroll == 'true')
+			$('#report').css({ 'overflow-y': 'scroll' });
+		else
+			$('#report').css({ 'overflow-y': 'visible' });
+	}
+	
+	function getMaxPage(){
+		return endPage; 
 	}
 
     function callLink(method, url, params, targetFrame, callbackFn) {
@@ -729,53 +718,34 @@
     }
 
     /*
-    var fileDownloadCheckTimer;
 	function callRequestUrl(url, params, method) {
-
-        $( "#loading" ).show();
-
+		
 	    method = method || "POST"; 
 	    var form = document.createElement("form");
-        form.setAttribute("id","myForm");
 	    form.setAttribute("method", method);
 	    form.setAttribute("action", url);
 	   
 	    for(var key in params) {
-             if(params.hasOwnProperty(key)) {
-                 var hiddenField = document.createElement("input");
-                 hiddenField.setAttribute("type", "hidden");
-                 hiddenField.setAttribute("name", key);
-                 hiddenField.setAttribute("value", params[key]);
-
-                 form.appendChild(hiddenField);
-             }
-
-        }
+	        if(params.hasOwnProperty(key)) {
+	            var hiddenField = document.createElement("input");
+	            hiddenField.setAttribute("type", "hidden");
+	            hiddenField.setAttribute("name", key);
+	            hiddenField.setAttribute("value", params[key]);
+	           
+	            form.appendChild(hiddenField);
+	         }
+	        
+	    }
 	    
 	    var hiddenField = document.createElement("input");
         hiddenField.setAttribute("type", "hidden");
         hiddenField.setAttribute("name", "url");
         hiddenField.setAttribute("value", getStripUrl(reportUrl));
         form.appendChild(hiddenField);
-
+        
 	    document.body.appendChild(form);
-
-        fileDownloadCheckTimer = window.setInterval(function () {
-            var cookieValue = $.cookie("fileDownloadToken");
-            if (cookieValue == "success") {
-                $("#loading").hide();
-                finishDownload();
-            }
-        }, 500);
-
-        form.submit();
+	    form.submit();
 	}
-
-    function finishDownload() {
-        window.clearInterval(fileDownloadCheckTimer);
-        $.removeCookie('fileDownloadToken'); //clears this cookie value
-        //$.unblockUI();
-    }
     */
 
     var $iframe;
@@ -850,7 +820,6 @@
 
             var cookieValue = $.cookie("fileDownloadToken");
             if (cookieValue == "success") {
-
                 setTimeout(function () {
                     $("#loading3").hide();
                     //if ($iframe) {
@@ -871,10 +840,10 @@
             $("#loading3").hide();
             formDoc = getiframeDocument($iframe);
             //setTimeout(function () {
-                //alert(formDoc.body.innerHTML);
-                //if ($iframe) {
-                //    $iframe.remove();
-                //}
+            //    alert(formDoc.body.innerHTML);
+            //    if ($iframe) {
+            //        $iframe.remove();
+            //    }
             //},100);
 
         });
@@ -884,7 +853,6 @@
         //$form.submit();
 
     }
-
     //gets an iframes document in a cross browser compatible manner
     function getiframeDocument($iframe) {
         var iframeDoc = $iframe[0].contentWindow || $iframe[0].contentDocument;
@@ -893,7 +861,7 @@
         }
         return iframeDoc;
     }
-
+	
 	function getStripUrl(url){
 		if(url.indexOf("?") != -1){
 			var stripUrl=url.substring(0,url.indexOf("?"));
@@ -904,11 +872,8 @@
 		
 		return stripUrl;
 	}
-
+	
 	function ajaxPrint(jspUrl) {
-		
-		//alert(jspUrl);
-		
 		if(printCount == 1){
 			$.ajax({  
 				type: "get",  
@@ -916,7 +881,7 @@
 				url: jspUrl,   
 				success: function(xmlData) {
                 		 
-					//alert(xmlData);
+					//console.log("33333333333333333");
 					//console.log(swfReady);
 					if (swfReady){
 						getSWF("AIprint").flashPrint(xmlData);
@@ -937,7 +902,7 @@
 				error: function(xhr, status, error) {
 					alert(status + " " + error);   
 				}  
-			});
+			});  
 			
 			if (navigator.userAgent.indexOf("Firefox") == -1){
 				printCount++;
@@ -1019,7 +984,7 @@
 		
 	}
 
-	function ajaxPdfPrintNew(jspCall,jspUrl,method,parameter,width,height) {
+    function ajaxPdfPrintNew(jspCall,jspUrl,method,parameter,width,height) {
 
         if(browser.indexOf("iPhone")!=-1 || browser.indexOf("iPad")!=-1){
             if (langScCd.indexOf("ko") != -1) {
@@ -1047,7 +1012,7 @@
 
         if(windowPrint){
 
-            var target = document.getElementById('myIframe');
+            var target = document.getElement8ById('myIframe');
             if (target == null) {
                 var $iframe, formDoc;
                 var formInnerHtml = "";
@@ -1164,8 +1129,9 @@
 
         pdfPath=encodeURIComponent(pdfPath);
         var embedTag="<object data=\"" + jspCall + pdfPath + "\" " + "id=\"pdfDoc\" name=\"pdfDoc\" type=\"application/pdf\" width=\"1px\" height=\"1px\">";
-        embedTag=filterXssString(embedTag);
         //var embedIframeTag="<iframe id=\"iFramePdf\" name=\"iFramePdf\" src=\"" + jspCall + pdfPath + "\" " + "style=\"display:none\" width=\"1px\" height=\"1px\"></iframe>";
+
+        embedTag=filterXssString(embedTag);
         if($('#pdfdiv').children().length == 0){
             $('#pdfdiv').append(embedTag);
         }
@@ -1185,25 +1151,22 @@
         else
             alert("Complete Print...");
     }
-
-    function printDialogPopup(jspCall, pdfPath){
-
-		//pdfPath=encodeURIComponent(pdfPath);
-		//var embedTag="<embed src=\"" + jspCall + pdfPath + "\" " + "id=\"pdfDoc\" name=\"pdfDoc\" width=\"1px\" height=\"1px\" onload=printAll();>";
-        var embedTag="<embed src=\"" + jspCall + pdfPath + "\" " + "id=\"pdfDoc\" name=\"pdfDoc\" width=\"1px\" height=\"1px\">";
-		//var embedTag="<embed src=\"" + jspCall + pdfPath + "\" " + "id=\"pdfDoc\" name=\"pdfDoc\" width=\"1px\" height=\"1px\" type=\"application/pdf\" pluginspage=\"http://www.macromedia.com/shockwave/download/index.cgi? P1_Prod_Version=ShockwaveFlash\" >";
+	
+	function printDialogPopup(jspCall, pdfPath){
+	
+		pdfPath=encodeURIComponent(pdfPath);
+		var embedTag="<embed src=\"" + jspCall + pdfPath + "\" " + "id=\"pdfDoc\" name=\"pdfDoc\" width=\"1px\" height=\"1px\">";
 		var embedIframeTag="<iframe id=\"iFramePdf\" name=\"iFramePdf\" src=\"" + jspCall + pdfPath + "\" " + "style=\"display:none\" width=\"1px\" height=\"1px\" onload=printDialog()></iframe>";
         var embedIframeTag2="<iframe id=\"iFramePdf\" name=\"iFramePdf\" src=\"" + jspCall + pdfPath + "\" " + "width=\"1px\" height=\"1px\" onload=printDialog()></iframe>";
 
         embedTag=filterXssString(embedTag);
         embedIframeTag=filterXssString(embedIframeTag);
         embedIframeTag2=filterXssString(embedIframeTag2);
-
 		if (navigator.userAgent.indexOf("Safari") != -1 )
 		{
-
+	
 			if(navigator.userAgent.indexOf("Chrome") != -1 || navigator.userAgent.indexOf("Macintosh") != -1){
-
+				
 				if($('#pdfdiv').children().length == 0){
 					$('#pdfdiv').append(embedIframeTag);
 				}
@@ -1212,7 +1175,7 @@
 					getMyFrame.focus();
 					getMyFrame.contentWindow.print();
 				}
-
+				
 			}
             else if(navigator.userAgent.indexOf("Edge") != -1){
                 //Edge
@@ -1236,8 +1199,7 @@
 				}
 			}
 		}
-		else if(navigator.userAgent.indexOf("MSIE") != -1 || navigator.userAgent.indexOf("rv:11.0") != -1){
-
+        else if(navigator.userAgent.indexOf("MSIE") != -1 || navigator.userAgent.indexOf("rv:11.0") != -1){
             //IE9-11
 			if($('#pdfdiv').children().length == 0){
 				$('#pdfdiv').append(embedIframeTag);
@@ -1245,9 +1207,9 @@
 			else{
 				$('#iFramePdf').remove();
 				$('#pdfdiv').append(embedIframeTag);
-
+				
 			}
-
+			
 		}
 		else
 		{
@@ -1259,20 +1221,21 @@
 				$('#pdfDoc').remove();
 				$('#pdfdiv').append(embedTag);
 			}
+			
 		}
-
-	}
 		
-	function printDialog(){
-		var getMyFrame = document.getElementById('iFramePdf');
+	}
+
+    function printDialog(){
+        var getMyFrame = document.getElementById('iFramePdf');
         setTimeout(function () {
             getMyFrame.focus();
             getMyFrame.contentWindow.print();
         },1000);
-	}
+    }
+	
 	
 	function urlPrint(xmlData){
-		alert(xmlData);
 		if(printCount == 1){
 			if (swfReady){
 				getSWF("AIprint").flashPrint(xmlData);
@@ -1284,8 +1247,16 @@
 			}
 		}
 	}
+	
+	/*
+	function pdfPrint(urlStr,width,height){
+		var url = JSON.parse(urlStr);
+		var options = "toolbar=no," + "width=" + width + ",height=" + height + ",status=no";
+		window.open(url[0].targetURL,"print",options);
+	}
+	*/
 
-	function directPrint(params){
+    function directPrint(params){
 
         if(browser.indexOf("iPhone")!=-1 || browser.indexOf("iPad")!=-1){
             if (langScCd.indexOf("ko") != -1) {
@@ -1405,9 +1376,9 @@
         var formDoc;
         var formInnerHtml = "";
 
-        //url=url+'?';
-
         method = method || "POST";
+
+        url=url+'?';
 
         if ($iframe2) {
             $iframe2.remove();
@@ -1417,10 +1388,8 @@
         $.cookie("cookieTest","true");
         var cookieTest= $.cookie("cookieTest");
 
-        if(cookieTest) {
-            $("#loading3").show();
-            $.removeCookie('fileDownloadToken', { path: '/' });
-        }
+        if(cookieTest)
+            $( "#loading3" ).show();
 
         for(var key in params) {
             if(params.hasOwnProperty(key)) {
@@ -1433,7 +1402,7 @@
             .hide()
             .prop("src", 'about:blank')
             .prop("id", 'myframe2')
-            .prop("name", 'myframeName')
+            .prop("name", 'myframe')
             .prop("width", '1px')
             .prop("height", '1px')
             .appendTo("body");
@@ -1478,8 +1447,22 @@
         formDoc.myform.submit();
 
     }
-
+	
 	function pdfPrint(url,params,width,height){
+		
+		/*
+		if(browser.indexOf("Safari") == -1){
+			
+			var info = getAcrobatInfo();
+			if(info.acrobat==false){
+				if(langScCd.indexOf("ko")!=-1)
+					alert("Adobe Reader를 설치후 이용바랍니다.");
+				else
+					alert("Please use after installing Adobe Reader.");
+				return;
+			}
+		}
+		*/
 		
 		if(browser.indexOf("Safari") == -1 && browser.indexOf("Chrome") == -1){
 			
@@ -1512,49 +1495,49 @@
 		printDialogPopup(url, urlparams[0].targetURL);
 	}
 	
-   function isInstalledAcrobatReader(){
-		var displayString;
-		var acrobat=new Object();
+    function isInstalledAcrobatReader(){
+        var displayString;
+        var acrobat=new Object();
 
-		acrobat.installed=false;
+        acrobat.installed=false;
         if(browser.indexOf("MSIE11") != -1 || browser.indexOf("MSIE10") != -1){
             try
-			{
-				oAcro7=new ActiveXObject('AcroPDF.PDF.1');
-				if (oAcro7)
-				{
-					acrobat.installed=true;
-					acrobat.version='7.0';
+            {
+                oAcro7=new ActiveXObject('AcroPDF.PDF.1');
+                if (oAcro7)
+                {
+                    acrobat.installed=true;
+                    acrobat.version='7.0';
 
-                     if( oAcro7.GetVersions().indexOf("10") == -1 &&
-                         oAcro7.GetVersions().indexOf("11") == -1 &&
-                         oAcro7.GetVersions().indexOf("12") == -1 &&
-                         oAcro7.GetVersions().indexOf("13") == -1 &&
-                         oAcro7.GetVersions().indexOf("14") == -1 &&
-                         oAcro7.GetVersions().indexOf("15") == -1 &&
-                         oAcro7.GetVersions().indexOf("16") == -1 &&
-                         oAcro7.GetVersions().indexOf("17") == -1 &&
-                         oAcro7.GetVersions().indexOf("18") == -1 &&
-                         oAcro7.GetVersions().indexOf("19") == -1 &&
-                         oAcro7.GetVersions().indexOf("20") == -1 &&
-                         oAcro7.GetVersions().indexOf("21") == -1 &&
-                         oAcro7.GetVersions().indexOf("22") == -1 &&
-                         oAcro7.GetVersions().indexOf("23") == -1 &&
-                         oAcro7.GetVersions().indexOf("24") == -1 &&
-                         oAcro7.GetVersions().indexOf("25") == -1 &&
-                         oAcro7.GetVersions().indexOf("26") == -1 &&
-                         oAcro7.GetVersions().indexOf("27") == -1 &&
-                         oAcro7.GetVersions().indexOf("28") == -1 &&
-                         oAcro7.GetVersions().indexOf("29") == -1 &&
-                         oAcro7.GetVersions().indexOf("30") == -1  ){
+                    if( oAcro7.GetVersions().indexOf("10") == -1 &&
+                        oAcro7.GetVersions().indexOf("11") == -1 &&
+                        oAcro7.GetVersions().indexOf("12") == -1 &&
+                        oAcro7.GetVersions().indexOf("13") == -1 &&
+                        oAcro7.GetVersions().indexOf("14") == -1 &&
+                        oAcro7.GetVersions().indexOf("15") == -1 &&
+                        oAcro7.GetVersions().indexOf("16") == -1 &&
+                        oAcro7.GetVersions().indexOf("17") == -1 &&
+                        oAcro7.GetVersions().indexOf("18") == -1 &&
+                        oAcro7.GetVersions().indexOf("19") == -1 &&
+                        oAcro7.GetVersions().indexOf("20") == -1 &&
+                        oAcro7.GetVersions().indexOf("21") == -1 &&
+                        oAcro7.GetVersions().indexOf("22") == -1 &&
+                        oAcro7.GetVersions().indexOf("23") == -1 &&
+                        oAcro7.GetVersions().indexOf("24") == -1 &&
+                        oAcro7.GetVersions().indexOf("25") == -1 &&
+                        oAcro7.GetVersions().indexOf("26") == -1 &&
+                        oAcro7.GetVersions().indexOf("27") == -1 &&
+                        oAcro7.GetVersions().indexOf("28") == -1 &&
+                        oAcro7.GetVersions().indexOf("29") == -1 &&
+                        oAcro7.GetVersions().indexOf("30") == -1  ){
 
                         acrobat.installed=false;
                     }
                     return acrobat.installed;
 
-				}
-			}
-			catch(e) {
+                }
+            }
+            catch(e) {
                 acrobat.installed=false;
             }
 
@@ -1603,75 +1586,75 @@
             return acrobat.installed;
         }
 
-		
-		if (navigator.plugins && navigator.plugins.length) {
-			
-			for (x=0; x<navigator.plugins.length;x++) {
-				
-				if (
-					navigator.plugins[x].description.indexOf('Adobe Acrobat')!= -1 ||
-					navigator.plugins[x].description.indexOf('Adobe PDF')!= -1
-				)
-				{
-					acrobat.version=parseFloat(navigator.plugins[x].description.split('Version ')[1]);
-					
-					if (acrobat.version.toString().length == 1) acrobat.version+='.0';
-					
-					acrobat.installed=true;
-					return acrobat.installed;
-				}
+
+        if (navigator.plugins && navigator.plugins.length) {
+
+            for (x=0; x<navigator.plugins.length;x++) {
+
+                if (
+                    navigator.plugins[x].description.indexOf('Adobe Acrobat')!= -1 ||
+                    navigator.plugins[x].description.indexOf('Adobe PDF')!= -1
+                    )
+                {
+                    acrobat.version=parseFloat(navigator.plugins[x].description.split('Version ')[1]);
+
+                    if (acrobat.version.toString().length == 1) acrobat.version+='.0';
+
+                    acrobat.installed=true;
+                    return acrobat.installed;
+                }
                 else if(navigator.plugins[x].description.indexOf('Foxit') != -1 ||
-                        navigator.plugins[x].description.indexOf('Nitro') != -1)
+                    navigator.plugins[x].description.indexOf('Nitro') != -1)
                 {
                     acrobat.installed=true;
                     return acrobat.installed;
                 }
-			}
-		}
-		else if (window.ActiveXObject)
-		{
-			for (x=2; x<10; x++)
-			{
-				try
-				{
+            }
+        }
+        else if (window.ActiveXObject)
+        {
+            for (x=2; x<10; x++)
+            {
+                try
+                {
                     var id="PDF.PdfCtrl." + x;
                     oAcro=new ActiveXObject(id);
-					if (oAcro)
-					{
-						acrobat.installed=true;
+                    if (oAcro)
+                    {
+                        acrobat.installed=true;
                         return acrobat.installed;
-					}
-				}
-				catch(e) {
+                    }
+                }
+                catch(e) {
                     acrobat.installed=false;
                 }
-			}
-			
-			try
-			{
-				oAcro4=new ActiveXObject('PDF.PdfCtrl.1');
-				if (oAcro4)
-				{
-					acrobat.installed=true;
-					acrobat.version='4.0';
+            }
+
+            try
+            {
+                oAcro4=new ActiveXObject('PDF.PdfCtrl.1');
+                if (oAcro4)
+                {
+                    acrobat.installed=true;
+                    acrobat.version='4.0';
                     return acrobat.installed;
-				}
-			}
-			catch(e) {
+                }
+            }
+            catch(e) {
                 acrobat.installed=false;
             }
-		
-			try
-			{
-				oAcro7=new ActiveXObject('AcroPDF.PDF.1');
-				if (oAcro7)
-				{
-					acrobat.installed=true;
-					acrobat.version='7.0';
+
+            try
+            {
+                oAcro7=new ActiveXObject('AcroPDF.PDF.1');
+                if (oAcro7)
+                {
+                    acrobat.installed=true;
+                    acrobat.version='7.0';
                     return acrobat.installed;
-				}
-			}
-			catch(e) {
+                }
+            }
+            catch(e) {
                 acrobat.installed=false;
             }
 
@@ -1717,10 +1700,10 @@
                 acrobat.installed=false;
             }
 
-		}
+        }
 
-		return acrobat.installed;
-	}
+        return acrobat.installed;
+    }
 	
 	function getNavigator(){
 		 return navigator.userAgent;
@@ -1728,34 +1711,35 @@
 	
 	function isReady() 
 	 { 
-		return jsReady; 
+		 //console.log("1111111111111111");
+		 return jsReady; 
 	 } 
 	 
 	 function setSWFIsReady(){
 		 swfReady = true;
 	 }
-	 
+	
 	 function getSWF(flashName){
-	 	if (navigator.appName.indexOf("Microsoft") != -1)
-	 	{
-	 		if(navigator.userAgent.indexOf("MSIE 9.0") != -1)
-	 			return document[flashName];
-	 		else if(navigator.userAgent.indexOf("MSIE 10.0") != -1)
-	 			return document[flashName];
-	 		else if(navigator.userAgent.indexOf("IEMobile") != -1)
-	 			return document[flashName];
-	 		else
-	 			return window[flashName];
-	 	}
-	 	else
-	 	{
-	 		return document[flashName];
-	 	}
-	 }
-	 
+		 	if (navigator.appName.indexOf("Microsoft") != -1)
+		 	{
+		 		if(navigator.userAgent.indexOf("MSIE 9.0") != -1)
+		 			return document[flashName];
+		 		else if(navigator.userAgent.indexOf("MSIE 10.0") != -1)
+		 			return document[flashName];
+		 		else if(navigator.userAgent.indexOf("IEMobile") != -1)
+		 			return document[flashName];
+		 		else
+		 			return window[flashName];
+		 	}
+		 	else
+		 	{
+		 		return document[flashName];
+		 	}
+		 }
+	
 	function convert(){
 		var index = $("#convert option").index($("#convert option:selected"));
-		$("#convert option:eq(0)").attr("selected", "selected");
+		$("#convert option:eq(0)").prop("selected", "selected");
 		if(index == 1)
 			PDFConvert();
 		else if (index == 2)
@@ -1764,7 +1748,7 @@
 	
 	function objectAppend(){
 		var index = $("#objectAppend option").index($("#objectAppend option:selected"));
-		$("#objectAppend option:eq(0)").attr("selected", "selected");
+		$("#objectAppend option:eq(0)").prop("selected", "selected");
 		if(index == 1)
 			textAppend();
 		else if (index == 2)
@@ -2068,11 +2052,11 @@
 			modal: true,
 			position: [350,200],
 			buttons: {
-				"확인": function() {
+				"확인": function() {		
                     var imageFile = $('#urlfile').val(); // 분리(2025.10.21)
 					var $myHtml = "<div id=" + "'imageDiv" + imageInsert +"'>" + 
 								"<img id=" + "'imageBox" + imageInsert + "'" + 
-								" " + "src='" + escapeInput(imageFile) + "'" + 
+								" " + "src='" + escapeInput(imageFile) + "'" +
 								" width='100' height='80' " + "></div>";
 								
 							//alert($myHtml);
@@ -2131,3 +2115,6 @@
 		});
 		
 	}
+
+
+
