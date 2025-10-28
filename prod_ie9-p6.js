@@ -2077,8 +2077,7 @@
                     var imageFile = $('#urlfile').val(); // 분리(2025.10.21)
 					var $myHtml = "<div id=" + "'imageDiv" + imageInsert +"'>" + 
 								"<img id=" + "'imageBox" + imageInsert + "'" + 
-								//" " + "src='" + escapeInput(imageFile) + "'" +
-						        " " + "src='" + imageFile + "'" + 
+								" " + "src='" + escapeInput(imageFile) + "'" +
 								" width='100' height='80' " + "></div>";
 								
 							//alert($myHtml);
@@ -2137,4 +2136,5 @@
 		});
 		
 	}
+
 
